@@ -1,0 +1,122 @@
+/* ============================================================
+   折光 App · 外壳样式
+   原型是固定 375×812 画板，这里保留该"设计像素"，
+   再用 transform 等比缩放到真实手机屏幕，保证 28 屏零改动还原。
+   ============================================================ */
+
+html,body{
+  height:100%;margin:0;padding:0;overflow:hidden;
+  background:#1A1310;
+  overscroll-behavior:none;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-text-size-adjust:100%;
+}
+body{
+  /* 覆盖原型板的画板内边距 */
+  padding:0!important;
+  font-family:'PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;
+  color:var(--txt);
+  user-select:none;
+  -webkit-user-select:none;
+}
+input,textarea{user-select:text;-webkit-user-select:text;font-size:16px!important}
+
+#app{
+  position:fixed;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0)
+          env(safe-area-inset-bottom,0) env(safe-area-inset-left,0);
+  background:radial-gradient(circle at 50% 18%,#3A2A22 0%,#1A1310 68%);
+  overflow:hidden;
+}
+#stageWrap{
+  position:relative;flex:none;overflow:hidden;
+  background:var(--bg);
+  box-shadow:0 26px 80px rgba(0,0,0,.55);
+}
+#stage{
+  position:absolute;top:0;left:0;
+  width:375px;height:812px;
+  transform-origin:0 0;
+  background:var(--bg);
+}
+@media (min-width:520px) and (min-height:900px){
+  #stageWrap{border-radius:26px}
+}
+
+/* ---------- 单屏容器 ---------- */
+.app-screen{
+  position:absolute!important;inset:0;
+  width:375px;height:812px;
+  overflow:hidden;
+  border-radius:0!important;
+  box-shadow:none!important;
+  outline:none!important;
+  margin:0!important;
+  background:var(--bg);
+  will-change:opacity,transform;
+}
+.app-screen.in{animation:screenIn .24s cubic-bezier(.22,.9,.28,1) both}
+@keyframes screenIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.app-screen.out{animation:screenOut .2s ease both;pointer-events:none}
+@keyframes screenOut{from{opacity:1}to{opacity:0}}
+
+/* 状态栏：真机时间 */
+.statusbar{font-variant-numeric:tabular-nums}
+.app-screen.dark-top .statusbar{color:#fff}
+.app-screen.dark-page{color:#fff}
+
+/* 内层滚动区（由构建脚本把固定高度改成 flex 滚动） */
+.app-screen ::-webkit-scrollbar{width:0;height:0}
+
+/* 底部弹层：按内容自适应高度，给悬浮按钮留出空间 */
+.app-screen .sheet{
+  height:auto!important;
+  max-height:88%!important;
+  padding-bottom:132px!important;
+  overflow-y:auto!important;
+}
+
+/* 滚动区内吸底操作条 */
+.app-screen .dock{
+  position:sticky!important;
+  bottom:0;
+  z-index:6;
+  background:linear-gradient(180deg,rgba(255,248,242,0),var(--bg) 28%);
+  backdrop-filter:blur(2px);
+}
+.app-screen.dark-page .dock{background:linear-gradient(180deg,rgba(16,27,38,0),#101B26 32%)}
+
+/* 走势页日期列：原文 62px 会把「15日 周日」挤成两行 */
+.app-screen span[style*="width:62px"]{width:auto!important;min-width:62px;white-space:nowrap}
+
+/* 按压反馈统一化 */
+[data-go],.btn-p,.btn-o,.btn-dash,.cs-opt,.cs-chip,.chk,.emo,.row,.sw,.rec{-webkit-tap-highlight-color:transparent}
+
+/* 启动页视频 */
+.splash-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:60;
+  background:transparent;pointer-events:none;opacity:0;transition:opacity .35s}
+.splash-video.ready{opacity:1}
+
+/* 空状态：首屏挂载完成前不闪白 */
+#stage:empty{background:var(--bg)}
+
+/* 棱的回复下方「朗读」 */
+.app-screen .ai-say{
+  display:inline-flex;align-items:center;gap:4px;margin-top:6px;padding:2px 0;
+  border:none;background:none;color:var(--txt3);font:inherit;font-size:11px;
+  line-height:1;cursor:pointer;
+}
+.app-screen .ai-say.on{color:var(--primary)}
+
+/* 长按说话：按住时的高亮呼吸 */
+.app-screen [data-go="p28"].rec{
+  background:var(--primary)!important;color:#fff!important;
+  animation:recPulse 1.1s ease-in-out infinite;
+}
+.app-screen [data-go="p28"].rec .ico{stroke:#fff}
+@keyframes recPulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(224,122,58,.4)}
+  55%{box-shadow:0 0 0 9px rgba(224,122,58,0)}
+}
+
