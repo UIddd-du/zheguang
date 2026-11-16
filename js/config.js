@@ -6,6 +6,6 @@
      aiBase: 'https://zheguang-ai.xxx.workers.dev'
    也可以在 App 里「我的 → 棱的模型 → 服务地址」临时覆盖。 */
 window.ZG_CFG = {
-  aiBase: 'https://zheguang-ai.2418372755.workers.dev',
+  aiBase: 'https://1320740978-1h0ifbx8bj.in.ap-guangzhou.tencentscf.com',
   model: 'glm-4-flash'
 };
