@@ -1,5 +1,5 @@
 /* 折光 App · 离线缓存（PWA） */
-const CACHE = 'zheguang-v13';
+const CACHE = 'zheguang-v14';
 const ASSETS = [
   './',
   './index.html',

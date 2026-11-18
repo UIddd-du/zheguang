@@ -31,11 +31,11 @@
     try { localStorage.setItem(CFG_KEY, JSON.stringify(c)); } catch (e) {}
     return c;
   }
-  function getHistory() {
-    try { return JSON.parse(localStorage.getItem(CHAT_KEY) || '[]'); } catch (e) { return []; }
+  function getHistoryOf(k) {
+    try { return JSON.parse(localStorage.getItem(CHAT_KEY + '.' + k) || '[]'); } catch (e) { return []; }
   }
-  function saveHistory(h) {
-    try { localStorage.setItem(CHAT_KEY, JSON.stringify(h.slice(-20))); } catch (e) {}
+  function saveHistoryOf(k, h) {
+    try { localStorage.setItem(CHAT_KEY + '.' + k, JSON.stringify(h.slice(-20))); } catch (e) {}
   }
 
   function isLocal() {
@@ -69,6 +69,7 @@
     companion: {
       label: '陪伴', sub: '专注陪伴你', temp: 0.9, color: '#D97F3C', bg: '#FBEEE0',
       light: '#FFD580', dark: '#8A6A48',
+      hello: '我在这儿。想说什么就说，不想说也没关系。',
       prompt: [
         '当前模式：陪伴。',
         '你唯一的任务是让对方感到被听见。',
@@ -83,6 +84,7 @@
     analysis: {
       label: '分析', sub: '一起理一理', temp: 0.45, color: '#4A7A9B', bg: '#EAF1F7',
       light: '#A9CBDF', dark: '#2F5167',
+      hello: '今天发生了什么？我们一起把它理一理。',
       prompt: [
         '当前模式：分析。',
         '你的任务是帮对方把模糊的感受说清楚，不要只重复他的情绪。',
@@ -100,6 +102,7 @@
     guide: {
       label: '引导', sub: '找件小事做', temp: 0.7, color: '#6C8F72', bg: '#EDF4EE',
       light: '#B9D3BE', dark: '#45624B',
+      hello: '要不要从一件很小的事开始？不想动也没关系。',
       prompt: [
         '当前模式：引导。',
         '第一句先用半句话接住情绪（不超过 15 字，例如「听起来今天真的很沉」）。',
@@ -242,12 +245,14 @@
     var sendBtn = input.parentElement.querySelector('use[href="#i-send"]');
     sendBtn = sendBtn ? sendBtn.closest('span') : null;
 
-    var history = getHistory();
+    /* 每个模式各自一条对话记录，互不混用 */
+    var threads = {};
+    for (var tk in MODES) threads[tk] = getHistoryOf(tk);
     var busy = false;
     var modeKey = localStorage.getItem('zg.ai.mode') || 'companion';
     if (!MODES[modeKey]) modeKey = 'companion';
 
-    /* 模式切换：只影响之后的回复，不改已经聊过的内容 */
+    /* 模式切换：换到该模式自己的那条对话 */
     var segs = [].slice.call(el.querySelectorAll('.seg span'));
     var subTitle = null;
     [].forEach.call(el.querySelectorAll('span,div'), function (n) {
@@ -278,25 +283,32 @@
       el.style.setProperty('--mode-shadow', m.color + '4D');
       if (sendBtn) sendBtn.style.background = m.color;
     }
+    function scrollBottom() { scroller.scrollTop = scroller.scrollHeight; }
+
+    /* 只渲染当前模式的那条对话；还没有聊过时给一句该模式的开场 */
+    function renderThread() {
+      scroller.innerHTML = '';
+      var list = threads[modeKey] || [];
+      if (!list.length) {
+        scroller.appendChild(bubble('ai', MODES[modeKey].hello));
+      } else {
+        list.forEach(function (m) { scroller.appendChild(bubble(m.r === 'u' ? 'user' : 'ai', m.t)); });
+      }
+      scrollBottom();
+    }
+
     segs.forEach(function (s) {
       s.addEventListener('click', function () {
         var k = modeOf(s);
-        if (!k) return;
+        if (!k || k === modeKey) return;
         modeKey = k;
         try { localStorage.setItem('zg.ai.mode', k); } catch (e) {}
         paintMode();
+        renderThread();
       });
     });
     paintMode();
-
-    function scrollBottom() { scroller.scrollTop = scroller.scrollHeight; }
-
-    if (history.length) {
-      var seed = scroller.querySelector('.typing');
-      if (seed) seed.parentElement.remove();
-      history.forEach(function (m) { scroller.appendChild(bubble(m.r === 'u' ? 'user' : 'ai', m.t)); });
-      scrollBottom();
-    }
+    renderThread();
 
     function fail(msg) {
       var t = scroller.querySelector('.ai-typing');
@@ -315,18 +327,17 @@
       busy = true;
       if (sendBtn) sendBtn.style.opacity = '.55';
 
-      var seedTyping = scroller.querySelector('.typing');
-      if (seedTyping && !seedTyping.closest('.ai-typing')) seedTyping.closest('div[style*="display:flex"]').remove();
-
       scroller.appendChild(bubble('user', text));
       input.value = '';
       var tp = typingRow();
       scroller.appendChild(tp);
       scrollBottom();
 
-      var mode = MODES[modeKey];
+      var reqMode = modeKey;
+      var thread = threads[reqMode];
+      var mode = MODES[reqMode];
       var msgs = [{ role: 'system', content: SYSTEM + '\n\n' + mode.prompt }]
-        .concat(history.slice(-8).map(function (m) {
+        .concat(thread.slice(-8).map(function (m) {
           return { role: m.r === 'u' ? 'user' : 'assistant', content: m.t };
         }))
         /* 末尾再提醒一次模式，避免被之前的对话风格带跑 */
@@ -353,13 +364,16 @@
           ? res.j.choices[0].message.content.trim() : '';
         if (!reply) throw new Error('空回复');
         tp.remove();
-        scroller.appendChild(bubble('ai', reply));
-        scrollBottom();
-        history.push({ r: 'u', t: text }, { r: 'a', t: reply });
-        saveHistory(history);
+        thread.push({ r: 'u', t: text }, { r: 'a', t: reply });
+        saveHistoryOf(reqMode, thread);
+        /* 回复到达前切了模式，就只存档，不把它显示到别的模式里 */
+        if (reqMode === modeKey) {
+          scroller.appendChild(bubble('ai', reply));
+          scrollBottom();
+        }
         busy = false;
         if (sendBtn) sendBtn.style.opacity = '1';
-        if (getCfg().auto) {
+        if (reqMode === modeKey && getCfg().auto) {
           var last = scroller.querySelectorAll('.ai-say');
           speak(reply, last[last.length - 1]);
         }
