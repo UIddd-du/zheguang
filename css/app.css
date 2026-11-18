@@ -101,6 +101,14 @@ input,textarea{user-select:text;-webkit-user-select:text;font-size:16px!importan
 /* 空状态：首屏挂载完成前不闪白 */
 #stage:empty{background:var(--bg)}
 
+/* AI 三种模式的主题色：陪伴橙 / 分析雾蓝 / 引导苔绿 */
+.app-screen[data-mode] .seg{background:var(--mode-bg);transition:background .25s}
+.app-screen[data-mode] .seg span.on{background:var(--mode-c);transition:background .25s}
+.app-screen[data-mode] .seg span.on{color:#fff}
+.ai-dot{width:28px;height:28px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,rgba(255,255,255,.34),var(--mode-c,#E07A3A));
+  background-color:var(--mode-c,#E07A3A);transition:background .25s}
+
 /* 底栏「棱」入口：圆形高亮，和普通 tab 区分开 */
 .bnav .ti.ai{margin-top:-5px;color:var(--primary)}
 .bnav .ti.ai .ico{width:34px;height:34px;padding:6px;box-sizing:border-box;border-radius:50%;

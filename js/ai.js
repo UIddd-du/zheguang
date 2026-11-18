@@ -67,7 +67,7 @@
   /* 三种对话模式：目标、输出结构、采样温度都不同，避免回答趋同 */
   var MODES = {
     companion: {
-      label: '陪伴', sub: '专注陪伴你', temp: 0.9,
+      label: '陪伴', sub: '专注陪伴你', temp: 0.9, color: '#D97F3C', bg: '#FBEEE0',
       prompt: [
         '当前模式：陪伴。',
         '你唯一的任务是让对方感到被听见。',
@@ -80,7 +80,7 @@
       reminder: '只共情和陪伴：不分析原因、不建议、不提问。'
     },
     analysis: {
-      label: '分析', sub: '一起理一理', temp: 0.45,
+      label: '分析', sub: '一起理一理', temp: 0.45, color: '#4A7A9B', bg: '#EAF1F7',
       prompt: [
         '当前模式：分析。',
         '你的任务是帮对方把模糊的感受说清楚，不要只重复他的情绪。',
@@ -96,7 +96,7 @@
       reminder: '按「命名情绪 → 会不会是…… → 一个开放问题」来回答。禁止天气比喻，禁止建议。'
     },
     guide: {
-      label: '引导', sub: '找件小事做', temp: 0.7,
+      label: '引导', sub: '找件小事做', temp: 0.7, color: '#6C8F72', bg: '#EDF4EE',
       prompt: [
         '当前模式：引导。',
         '第一句先用半句话接住情绪（不超过 15 字，例如「听起来今天真的很沉」）。',
@@ -172,8 +172,8 @@
   /* ---------------- 气泡 ---------------- */
   function aiAvatar() {
     var s = document.createElement('span');
-    s.setAttribute('style', 'width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#F4A261,#E07A3A);flex-shrink:0;display:flex;align-items:center;justify-content:center');
-    s.innerHTML = '<svg width="14" height="14" viewBox="0 0 52 52"><polygon points="26,6 46,42 6,42" fill="rgba(255,255,255,.3)" stroke="#fff" stroke-width="3"/></svg>';
+    s.className = 'ai-dot';
+    s.innerHTML = '<svg width="14" height="14" viewBox="0 0 52 52"><polygon points="26,6 46,42 6,42" fill="rgba(255,255,255,.32)" stroke="#fff" stroke-width="3"/></svg>';
     return s;
   }
 
@@ -257,11 +257,18 @@
       return null;
     }
     function paintMode() {
+      var m = MODES[modeKey];
       segs.forEach(function (s) {
         var k = modeOf(s);
         s.classList.toggle('on', k === modeKey);
       });
-      if (subTitle) subTitle.textContent = '在线 · ' + MODES[modeKey].sub;
+      if (subTitle) {
+        subTitle.textContent = '在线 · ' + m.sub;
+        subTitle.style.color = m.color;
+      }
+      el.dataset.mode = modeKey;
+      el.style.setProperty('--mode-c', m.color);
+      el.style.setProperty('--mode-bg', m.bg);
     }
     segs.forEach(function (s) {
       s.addEventListener('click', function () {
