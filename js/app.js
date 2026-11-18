@@ -78,6 +78,8 @@
   /* ---------------- 底栏 ---------------- */
   var TABS = [
     ['home', '首页', 'p08', 'M3 10.5L12 3l9 7.5M5 9.5V21h14V9.5', null],
+    ['record', '记录', 'p09', null, 'i-record'],
+    ['ai', '棱', 'p10', null, 'i-spark'],
     ['growth', '成长', 'p11', null, 'i-grow'],
     ['mine', '我的', 'p12', null, 'i-mine']
   ];
@@ -89,19 +91,52 @@
   }
   function navHTML(act) {
     var h = '';
-    TABS.slice(0, 2).forEach(function (t) {
-      h += '<div class="ti ' + (act === t[0] ? 'on' : '') + '" data-go="' + t[2] + '">' + tabSvg(t) +
+    TABS.forEach(function (t) {
+      h += '<div class="ti' + (act === t[0] ? ' on' : '') + (t[0] === 'ai' ? ' ai' : '') +
+        '" data-go="' + t[2] + '"' + (t[0] === 'ai' ? ' aria-label="和棱对话"' : '') + '>' +
+        (t[0] === 'record' ? '<span class="rec">' + tabSvg(t) + '</span>' : tabSvg(t)) +
         '<span class="lb">' + t[1] + '</span></div>';
-      if (t[0] === 'home') {
-        h += '<div class="ti ' + (act === 'record' ? 'on' : '') + '" data-go="p09">' +
-          '<span class="rec"><svg class="ico"><use href="#i-record"/></svg></span>' +
-          '<span class="lb">记录</span></div>';
-      }
     });
-    var m = TABS[2];
-    h += '<div class="ti ' + (act === m[0] ? 'on' : '') + '" data-go="' + m[2] + '">' + tabSvg(m) +
-      '<span class="lb">' + m[1] + '</span></div>';
     return h;
+  }
+
+  /* ---------------- 28 屏功能总览 ---------------- */
+  var DIRECTORY_GROUPS = [
+    ['初次见面', ['p01', 'p02', 'p03', 'p04', 'p05', 'p06', 'p07']],
+    ['主要功能', ['p08', 'p09', 'p10', 'p11', 'p12', 'p13', 'p14']],
+    ['记录与成长', ['p15', 'p16', 'p17', 'p18', 'p19', 'p20', 'p21']],
+    ['照顾与设置', ['p22', 'p23', 'p24', 'p25', 'p26', 'p27', 'p28']]
+  ];
+
+  function closeDirectory(root) {
+    if (!root) return;
+    [].forEach.call(root.querySelectorAll('.directory-mask,.directory-panel'), function (el) { el.remove(); });
+  }
+
+  function openDirectory(root) {
+    if (!root || root.querySelector('.directory-panel')) return;
+    var mask = document.createElement('div');
+    mask.className = 'directory-mask';
+    mask.dataset.directoryClose = '';
+    var panel = document.createElement('section');
+    panel.className = 'directory-panel';
+    panel.setAttribute('aria-label', '全部功能');
+    var html = '<div class="directory-head"><div><h2>全部功能</h2><p>原型中的 28 个界面，都可以从这里打开</p></div>' +
+      '<button type="button" class="directory-close" data-directory-close aria-label="关闭">×</button></div>' +
+      '<div class="directory-scroll">';
+    DIRECTORY_GROUPS.forEach(function (group) {
+      html += '<h3>' + group[0] + '</h3><div class="directory-grid">';
+      group[1].forEach(function (id) {
+        if (!SCREENS[id]) return;
+        var title = id === 'p10' ? '棱 · AI 对话' : SCREENS[id].title;
+        html += '<button type="button" class="directory-item' + (id === 'p10' ? ' featured' : '') + '" data-go="' + id + '">' +
+          '<span>' + id.toUpperCase() + '</span><strong>' + title + '</strong></button>';
+      });
+      html += '</div>';
+    });
+    panel.innerHTML = html + '</div>';
+    root.appendChild(mask);
+    root.appendChild(panel);
   }
 
   /* ---------------- 持久化 ---------------- */
@@ -225,12 +260,24 @@
       }).join('');
     });
 
+    /* AI 对话保留底栏，并给输入区让出导航高度 */
+    if (id === 'p10') {
+      [].forEach.call(el.querySelectorAll('div[style*="overflow-y:auto"]'), function (d) {
+        if (d.querySelector('.typing')) d.style.height = '522px';
+      });
+      var chatInput = el.querySelector('input[placeholder]');
+      if (chatInput && chatInput.parentElement && chatInput.parentElement.parentElement) {
+        chatInput.parentElement.parentElement.style.bottom = '64px';
+      }
+    }
+
     /* 底栏 */
-    if (s.nav) {
+    var navName = id === 'p10' ? 'ai' : s.nav;
+    if (navName) {
       var nav = document.createElement('nav');
       nav.className = 'bnav';
-      nav.dataset.nav = s.nav;
-      nav.innerHTML = navHTML(s.nav);
+      nav.dataset.nav = navName;
+      nav.innerHTML = navHTML(navName);
       el.appendChild(nav);
     }
 
@@ -283,6 +330,20 @@
 
   /* ---------------- 各屏专属行为 ---------------- */
   function initScreen(el, id) {
+    /* 「我的」置顶全部功能入口，避免二级页面只能靠隐蔽链接发现 */
+    if (id === 'p12') {
+      var recordBox = el.querySelector('.gtitle + div');
+      if (recordBox) {
+        var entry = document.createElement('div');
+        entry.className = 'row';
+        entry.dataset.directory = '';
+        entry.innerHTML = '<span class="ric" style="background:var(--orange-bg);color:var(--primary-deep)">' +
+          '<svg class="ico"><use href="#i-grid"/></svg></span><span class="rt">全部功能</span>' +
+          '<span class="rv">28 个原型界面</span><span class="ra">›</span>';
+        recordBox.insertBefore(entry, recordBox.firstChild);
+      }
+    }
+
     if (window.ZG_AI) {
       if (id === 'p10') window.ZG_AI.mountChat(el);
       if (id === 'p24') window.ZG_AI.mountSettings(el);
@@ -402,9 +463,19 @@
       return;
     }
 
+    /* 全部功能目录 */
+    var closeDir = t.closest('[data-directory-close]');
+    if (closeDir) { closeDirectory(closeDir.closest('.app-screen')); return; }
+    var openDir = t.closest('[data-directory]');
+    if (openDir) { openDirectory(openDir.closest('.app-screen')); return; }
+
     /* 路由跳转 */
     var goEl = t.closest('[data-go]');
-    if (goEl) { go(goEl.dataset.go); return; }
+    if (goEl) {
+      closeDirectory(goEl.closest('.app-screen'));
+      go(goEl.dataset.go);
+      return;
+    }
 
     /* 轻提示 */
     var toastEl = t.closest('[data-toast]');

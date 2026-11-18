@@ -101,6 +101,31 @@ input,textarea{user-select:text;-webkit-user-select:text;font-size:16px!importan
 /* 空状态：首屏挂载完成前不闪白 */
 #stage:empty{background:var(--bg)}
 
+/* 底栏「棱」入口：圆形高亮，和普通 tab 区分开 */
+.bnav .ti.ai{margin-top:-5px;color:var(--primary)}
+.bnav .ti.ai .ico{width:34px;height:34px;padding:6px;box-sizing:border-box;border-radius:50%;
+  background:linear-gradient(135deg,#F4A261,#E07A3A);color:#fff;
+  box-shadow:0 3px 10px rgba(224,122,58,.34)}
+.bnav .ti.ai .lb{font-weight:600}
+.bnav .ti.ai:active .ico{transform:scale(.94)}
+
+/* 28 屏功能总览 */
+.directory-mask{position:absolute;inset:0;z-index:90;background:rgba(61,43,31,.48);backdrop-filter:blur(2px)}
+.directory-panel{position:absolute;left:12px;right:12px;top:58px;bottom:76px;z-index:91;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);border:1px solid var(--border);border-radius:20px;box-shadow:0 18px 50px rgba(61,43,31,.22);animation:screenIn .2s ease both}
+.directory-head{display:flex;align-items:flex-start;justify-content:space-between;padding:20px 18px 12px}
+.directory-head h2{font-size:20px;line-height:1.3}
+.directory-head p{margin-top:6px;font-size:12px;color:var(--txt2);line-height:1.6}
+.directory-close{width:32px;height:32px;flex:none;border:0;border-radius:50%;background:var(--orange-bg);color:var(--txt2);font-size:22px;line-height:1;cursor:pointer}
+.directory-scroll{padding:0 16px 20px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.directory-scroll h3{margin:14px 2px 8px;font-size:13px;color:var(--txt2);font-weight:500}
+.directory-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.directory-item{min-width:0;min-height:62px;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:#fff;color:var(--txt);text-align:left;cursor:pointer}
+.directory-item span{display:block;margin-bottom:5px;font-size:10px;color:var(--txt3);letter-spacing:.6px}
+.directory-item strong{display:block;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.directory-item.featured{border-color:var(--primary);background:var(--orange-bg)}
+.directory-item.featured span,.directory-item.featured strong{color:var(--primary-deep)}
+.directory-item:active{transform:scale(.98)}
+
 /* 棱的回复下方「朗读」 */
 .app-screen .ai-say{
   display:inline-flex;align-items:center;gap:4px;margin-top:6px;padding:2px 0;

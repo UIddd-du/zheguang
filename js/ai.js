@@ -176,10 +176,15 @@
   /* ---------------- 对话 ---------------- */
   function mountChat(el) {
     var scroller = null;
-    [].forEach.call(el.querySelectorAll('div[style*="overflow-y:auto"]'), function (d) {
+    [].forEach.call(el.querySelectorAll('div'), function (d) {
+      var overflowY = getComputedStyle(d).overflowY;
+      if (overflowY !== 'auto' && overflowY !== 'scroll') return;
       if (!scroller && d.querySelector('.typing')) scroller = d;
     });
-    if (!scroller) [].forEach.call(el.querySelectorAll('div[style*="overflow-y:auto"]'), function (d) { if (!scroller) scroller = d; });
+    if (!scroller) [].forEach.call(el.querySelectorAll('div'), function (d) {
+      var overflowY = getComputedStyle(d).overflowY;
+      if (!scroller && (overflowY === 'auto' || overflowY === 'scroll')) scroller = d;
+    });
     var input = el.querySelector('input[placeholder]');
     if (!scroller || !input) return;
 
