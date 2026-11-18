@@ -1,5 +1,5 @@
 /* 折光 App · 离线缓存（PWA） */
-const CACHE = 'zheguang-v8';
+const CACHE = 'zheguang-v9';
 const ASSETS = [
   './',
   './index.html',
@@ -38,14 +38,14 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   if (new URL(req.url).origin !== location.origin) return;
 
+  /* 网络优先：在线时总是拿到最新页面，离线再回退缓存 */
   e.respondWith(
-    caches.match(req).then(hit => {
-      if (hit) return hit;
-      return fetch(req).then(res => {
-        const copy = res.clone();
-        caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
-        return res;
-      }).catch(() => caches.match('./index.html'));
-    })
+    fetch(req).then(res => {
+      const copy = res.clone();
+      caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
+      return res;
+    }).catch(() =>
+      caches.match(req).then(hit => hit || caches.match('./index.html'))
+    )
   );
 });
