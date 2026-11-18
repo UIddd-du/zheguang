@@ -69,7 +69,6 @@
     companion: {
       label: '陪伴', sub: '专注陪伴你', temp: 0.9, color: '#D97F3C', bg: '#FBEEE0',
       light: '#FFD580', dark: '#8A6A48',
-      hello: '我在这儿。想说什么就说，不想说也没关系。',
       prompt: [
         '当前模式：陪伴（只共情，不解决问题）。',
         '你唯一的任务是让对方感到被听见。',
@@ -87,7 +86,6 @@
     analysis: {
       label: '分析', sub: '一起理一理', temp: 0.45, color: '#4A7A9B', bg: '#EAF1F7',
       light: '#A9CBDF', dark: '#2F5167',
-      hello: '今天发生了什么？我们一起把它理一理。',
       prompt: [
         '当前模式：分析（帮他看清，不安慰、不行动）。',
         '你的任务是帮对方把模糊的感受说清楚，而不是重复他的情绪。',
@@ -107,7 +105,6 @@
     guide: {
       label: '引导', sub: '找件小事做', temp: 0.7, color: '#6C8F72', bg: '#EDF4EE',
       light: '#B9D3BE', dark: '#45624B',
-      hello: '要不要从一件很小的事开始？不想动也没关系。',
       prompt: [
         '当前模式：引导（只给一个能做的小动作，不分析、不追问）。',
         '结构：一句不超过 15 字的接住 + 只邀请一个 30 秒内能做完的具体动作 + 一句「不想动也没关系」。',
@@ -291,14 +288,27 @@
     }
     function scrollBottom() { scroller.scrollTop = scroller.scrollHeight; }
 
-    /* 只渲染当前模式的那条对话；还没有聊过时给一句该模式的开场 */
+    /* 保留原型里的开场示例对话，作为还没开始聊时的引导 */
+    var seedBox = document.createElement('div');
+    seedBox.innerHTML = scroller.innerHTML;
+    var seedTyping = seedBox.querySelector('.typing');
+    if (seedTyping) {
+      var seedRow = seedTyping.closest('div[style*="display:flex"]');
+      (seedRow || seedTyping.parentElement).remove();
+    }
+    var seedHTML = seedBox.innerHTML;
+    var demoShown = false;
+
+    /* 只渲染当前模式的那条对话；还没聊过时显示开场引导 */
     function renderThread() {
-      scroller.innerHTML = '';
       var list = threads[modeKey] || [];
-      if (!list.length) {
-        scroller.appendChild(bubble('ai', MODES[modeKey].hello));
+      if (!list.length && seedHTML) {
+        scroller.innerHTML = seedHTML;
+        demoShown = true;
       } else {
+        scroller.innerHTML = '';
         list.forEach(function (m) { scroller.appendChild(bubble(m.r === 'u' ? 'user' : 'ai', m.t)); });
+        demoShown = false;
       }
       scrollBottom();
     }
@@ -333,6 +343,8 @@
       busy = true;
       if (sendBtn) sendBtn.style.opacity = '.55';
 
+      /* 一开始引导用的示例对话，真正开口后就收起来 */
+      if (demoShown) { scroller.innerHTML = ''; demoShown = false; }
       scroller.appendChild(bubble('user', text));
       input.value = '';
       var tp = typingRow();
