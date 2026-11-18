@@ -68,6 +68,7 @@
   var MODES = {
     companion: {
       label: '陪伴', sub: '专注陪伴你', temp: 0.9, color: '#D97F3C', bg: '#FBEEE0',
+      light: '#FFD580', dark: '#8A6A48',
       prompt: [
         '当前模式：陪伴。',
         '你唯一的任务是让对方感到被听见。',
@@ -81,6 +82,7 @@
     },
     analysis: {
       label: '分析', sub: '一起理一理', temp: 0.45, color: '#4A7A9B', bg: '#EAF1F7',
+      light: '#A9CBDF', dark: '#2F5167',
       prompt: [
         '当前模式：分析。',
         '你的任务是帮对方把模糊的感受说清楚，不要只重复他的情绪。',
@@ -97,6 +99,7 @@
     },
     guide: {
       label: '引导', sub: '找件小事做', temp: 0.7, color: '#6C8F72', bg: '#EDF4EE',
+      light: '#B9D3BE', dark: '#45624B',
       prompt: [
         '当前模式：引导。',
         '第一句先用半句话接住情绪（不超过 15 字，例如「听起来今天真的很沉」）。',
@@ -269,6 +272,10 @@
       el.style.setProperty('--mode-c', m.color);
       el.style.setProperty('--mode-bg', m.bg);
       el.style.setProperty('--mode-line', m.color + '55');
+      el.style.setProperty('--mode-c2', m.light);
+      el.style.setProperty('--mode-dark', m.dark);
+      el.style.setProperty('--mode-glow', m.color + '24');
+      el.style.setProperty('--mode-shadow', m.color + '4D');
       if (sendBtn) sendBtn.style.background = m.color;
     }
     segs.forEach(function (s) {

@@ -124,6 +124,13 @@ input,textarea{user-select:text;-webkit-user-select:text;font-size:16px!importan
   border-radius:0 14px 14px 14px;
 }
 
+/* 顶部「棱」棱镜图标跟随模式换色 */
+.app-screen[data-mode] .lens{
+  background:radial-gradient(circle at 34% 30%,var(--mode-c2,#FFD580) 0%,var(--mode-c,#F4A261) 62%,var(--mode-dark,#8A6A48) 100%);
+  box-shadow:0 0 0 6px var(--mode-glow,#F4A26124),0 6px 18px var(--mode-shadow,#F4A2614D);
+  transition:background .25s,box-shadow .25s;
+}
+
 /* 底栏「棱」入口：圆形高亮，和普通 tab 区分开 */
 .bnav .ti.ai{margin-top:-5px;color:var(--primary)}
 .bnav .ti.ai .ico{width:34px;height:34px;padding:6px;box-sizing:border-box;border-radius:50%;
