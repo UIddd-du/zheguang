@@ -190,9 +190,7 @@
     var row = document.createElement('div');
     row.style.cssText = 'display:flex;gap:8px;margin-bottom:16px' + (role === 'user' ? ';justify-content:flex-end' : '');
     var box = document.createElement('div');
-    box.style.cssText = role === 'user'
-      ? 'max-width:270px;background:var(--primary);border-radius:14px 14px 0 14px;padding:12px 16px;font-size:14px;color:#fff;line-height:1.7;white-space:pre-wrap'
-      : 'max-width:270px;background:#fff;border:1px solid var(--border);border-radius:0 14px 14px 14px;padding:12px 16px;font-size:14px;line-height:1.7;white-space:pre-wrap';
+    box.className = 'ai-bub ' + (role === 'user' ? 'ai-bub-u' : 'ai-bub-a');
     box.textContent = text;
 
     if (role === 'ai') {
@@ -214,7 +212,8 @@
     row.style.cssText = 'display:flex;gap:8px;margin-bottom:16px';
     row.appendChild(aiAvatar());
     var box = document.createElement('div');
-    box.setAttribute('style', 'background:#fff;border:1px solid var(--border);border-radius:0 14px 14px 14px;padding:10px 16px');
+    box.className = 'ai-bub ai-bub-a';
+    box.style.padding = '10px 16px';
     box.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
     row.appendChild(box);
     return row;
@@ -269,6 +268,8 @@
       el.dataset.mode = modeKey;
       el.style.setProperty('--mode-c', m.color);
       el.style.setProperty('--mode-bg', m.bg);
+      el.style.setProperty('--mode-line', m.color + '55');
+      if (sendBtn) sendBtn.style.background = m.color;
     }
     segs.forEach(function (s) {
       s.addEventListener('click', function () {

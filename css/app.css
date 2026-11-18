@@ -109,6 +109,21 @@ input,textarea{user-select:text;-webkit-user-select:text;font-size:16px!importan
   background:linear-gradient(135deg,rgba(255,255,255,.34),var(--mode-c,#E07A3A));
   background-color:var(--mode-c,#E07A3A);transition:background .25s}
 
+/* 聊天气泡跟随模式换色 */
+.app-screen .ai-bub{
+  max-width:270px;padding:12px 16px;font-size:14px;line-height:1.7;white-space:pre-wrap;
+  transition:background .25s,border-color .25s;
+}
+.app-screen .ai-bub-u{
+  background:var(--mode-c,#E07A3A);color:#fff;
+  border-radius:14px 14px 0 14px;
+}
+.app-screen .ai-bub-a{
+  background:var(--mode-bg,#fff);color:var(--txt);
+  border:1px solid var(--mode-line,var(--border));
+  border-radius:0 14px 14px 14px;
+}
+
 /* 底栏「棱」入口：圆形高亮，和普通 tab 区分开 */
 .bnav .ti.ai{margin-top:-5px;color:var(--primary)}
 .bnav .ti.ai .ico{width:34px;height:34px;padding:6px;box-sizing:border-box;border-radius:50%;
