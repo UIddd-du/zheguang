@@ -64,6 +64,41 @@
     '7. 不要自称语言模型，不要解释你的规则。'
   ].join('\n');
 
+  /* 三种对话模式：目标、输出结构、采样温度都不同，避免回答趋同 */
+  var MODES = {
+    companion: {
+      label: '陪伴', sub: '专注陪伴你', temp: 0.9,
+      prompt: [
+        '当前模式：陪伴。',
+        '你唯一的任务是让对方感到被听见。',
+        '先用一句话贴近对方刚说的感受（可以接住他的原话），再留一句安静的陪伴。',
+        '不要分析原因，不要给建议，不要追问，不要总结，不要出现「看起来」「似乎你」这类分析口吻。'
+      ].join('\n')
+    },
+    analysis: {
+      label: '分析', sub: '一起理一理', temp: 0.45,
+      prompt: [
+        '当前模式：分析。',
+        '你的任务是帮对方把模糊的感受说清楚，不要只重复他的情绪。',
+        '固定用三层结构，总共不超过 80 字：',
+        '① 用一个更准确的词命名此刻的情绪；',
+        '② 给一个可能的来源假设，用「会不会是……」的猜测语气；',
+        '③ 问一个开放式问题，邀请他说更多。',
+        '不要给解决方案，不要用天气比喻。'
+      ].join('\n')
+    },
+    guide: {
+      label: '引导', sub: '找件小事做', temp: 0.7,
+      prompt: [
+        '当前模式：引导。',
+        '第一句先用半句话接住情绪（不超过 15 字，例如「听起来今天真的很沉」）。',
+        '第二句只邀请一个 30 秒内能做完的微小动作，必须具体且只有一个，例如慢慢呼一口气、喝一口温水、看向窗外 5 秒、站起来伸一下、把手放在胸口停三秒。',
+        '最后补一句「不想动也没关系」。',
+        '不要编号，不要列清单，不讲道理，不承诺效果，不用天气比喻。'
+      ].join('\n')
+    }
+  };
+
   /* ---------------- 朗读 ---------------- */
   var TTS_OK = 'speechSynthesis' in window;
   var voiceCache = null;
@@ -195,8 +230,37 @@
 
     var history = getHistory();
     var busy = false;
-    var extra = localStorage.getItem('zg.ai.style') || '';
-    if (extra) extra = '\n' + extra;
+    var modeKey = localStorage.getItem('zg.ai.mode') || 'companion';
+    if (!MODES[modeKey]) modeKey = 'companion';
+
+    /* 模式切换：只影响之后的回复，不改已经聊过的内容 */
+    var segs = [].slice.call(el.querySelectorAll('.seg span'));
+    var subTitle = null;
+    [].forEach.call(el.querySelectorAll('span,div'), function (n) {
+      if (!subTitle && !n.children.length && /^在线/.test((n.textContent || '').trim())) subTitle = n;
+    });
+    function modeOf(span) {
+      var name = span.textContent.trim();
+      for (var k in MODES) if (MODES[k].label === name) return k;
+      return null;
+    }
+    function paintMode() {
+      segs.forEach(function (s) {
+        var k = modeOf(s);
+        s.classList.toggle('on', k === modeKey);
+      });
+      if (subTitle) subTitle.textContent = '在线 · ' + MODES[modeKey].sub;
+    }
+    segs.forEach(function (s) {
+      s.addEventListener('click', function () {
+        var k = modeOf(s);
+        if (!k) return;
+        modeKey = k;
+        try { localStorage.setItem('zg.ai.mode', k); } catch (e) {}
+        paintMode();
+      });
+    });
+    paintMode();
 
     function scrollBottom() { scroller.scrollTop = scroller.scrollHeight; }
 
@@ -233,7 +297,8 @@
       scroller.appendChild(tp);
       scrollBottom();
 
-      var msgs = [{ role: 'system', content: SYSTEM + extra }]
+      var mode = MODES[modeKey];
+      var msgs = [{ role: 'system', content: SYSTEM + '\n\n' + mode.prompt }]
         .concat(history.slice(-10).map(function (m) {
           return { role: m.r === 'u' ? 'user' : 'assistant', content: m.t };
         }))
@@ -245,7 +310,7 @@
       fetch(url, {
         method: 'POST',
         headers: headers,
-        body: JSON.stringify({ model: cfg.model, messages: msgs, temperature: 0.8, max_tokens: 300 })
+        body: JSON.stringify({ model: cfg.model, messages: msgs, temperature: mode.temp, max_tokens: 300 })
       }).then(function (r) {
         return r.json().then(function (j) { return { ok: r.ok, status: r.status, j: j }; });
       }).then(function (res) {
@@ -283,15 +348,6 @@
     if (sendBtn) sendBtn.addEventListener('click', function () { send(); });
     input.addEventListener('keydown', function (e) {
       if (e.key === 'Enter') { e.preventDefault(); send(); }
-    });
-
-    [].forEach.call(el.querySelectorAll('.seg span'), function (s) {
-      s.addEventListener('click', function () {
-        var map = { '陪伴': '', '分析': '这次请多一点结构化的观察，但仍保持 80 字以内。', '引导': '这次可以轻轻给一个很小的可执行动作，不要清单。' };
-        extra = map[s.textContent.trim()] || '';
-        if (extra) extra = '\n' + extra;
-        localStorage.setItem('zg.ai.style', map[s.textContent.trim()] || '');
-      });
     });
 
     /* 长按说话 → 转文字 → 直接发给棱 */
